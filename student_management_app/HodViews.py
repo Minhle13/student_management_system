@@ -338,8 +338,8 @@ def add_student_save(request):
         form = AddStudentForm(request.POST, request.FILES)
 
         if form.is_valid():
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
+            name = form.cleaned_data['name']
+            
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
@@ -347,21 +347,8 @@ def add_student_save(request):
             session_year_id = form.cleaned_data['session_year_id']
             course_id = form.cleaned_data['course_id']
             gender = form.cleaned_data['gender']
-
-            # Getting Profile Pic first
-            # First Check whether the file is selected or not
-            # Upload only if file is selected
-            if len(request.FILES) != 0:
-                profile_pic = request.FILES['profile_pic']
-                fs = FileSystemStorage()
-                filename = fs.save(profile_pic.name, profile_pic)
-                profile_pic_url = fs.url(filename)
-            else:
-                profile_pic_url = None
-
-
             try:
-                user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=3)
+                user = CustomUser.objects.create_user(username=username, password=password, email=email, name=name, user_type=3)
                 user.students.address = address
 
                 course_obj = Courses.objects.get(id=course_id)
@@ -371,7 +358,6 @@ def add_student_save(request):
                 user.students.session_year_id = session_year_obj
 
                 user.students.gender = gender
-                user.students.profile_pic = profile_pic_url
                 user.save()
                 messages.success(request, "Student Added Successfully!")
                 return redirect('add_student')
@@ -399,8 +385,8 @@ def edit_student(request, student_id):
     # Filling the form with Data from Database
     form.fields['email'].initial = student.admin.email
     form.fields['username'].initial = student.admin.username
-    form.fields['first_name'].initial = student.admin.first_name
-    form.fields['last_name'].initial = student.admin.last_name
+    form.fields['name'].initial = student.admin.name
+    
     form.fields['address'].initial = student.address
     form.fields['course_id'].initial = student.course_id.id
     form.fields['gender'].initial = student.gender
@@ -426,29 +412,18 @@ def edit_student_save(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             username = form.cleaned_data['username']
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
+            name = form.cleaned_data['name']
+            
             address = form.cleaned_data['address']
             course_id = form.cleaned_data['course_id']
             gender = form.cleaned_data['gender']
             session_year_id = form.cleaned_data['session_year_id']
 
-            # Getting Profile Pic first
-            # First Check whether the file is selected or not
-            # Upload only if file is selected
-            if len(request.FILES) != 0:
-                profile_pic = request.FILES['profile_pic']
-                fs = FileSystemStorage()
-                filename = fs.save(profile_pic.name, profile_pic)
-                profile_pic_url = fs.url(filename)
-            else:
-                profile_pic_url = None
-
             try:
                 # First Update into Custom User Model
                 user = CustomUser.objects.get(id=student_id)
-                user.first_name = first_name
-                user.last_name = last_name
+                user.name = name
+                
                 user.email = email
                 user.username = username
                 user.save()
@@ -464,8 +439,6 @@ def edit_student_save(request):
                 student_model.session_year_id = session_year_obj
 
                 student_model.gender = gender
-                if profile_pic_url != None:
-                    student_model.profile_pic = profile_pic_url
                 student_model.save()
                 # Delete student_id SESSION after the data is updated
                 del request.session['student_id']
@@ -473,7 +446,7 @@ def edit_student_save(request):
                 messages.success(request, "Student Updated Successfully!")
                 return redirect('/edit_student/'+student_id)
             except:
-                messages.success(request, "Failed to Uupdate Student.")
+                messages.success(request, "Failed to Update Student.")
                 return redirect('/edit_student/'+student_id)
         else:
             return redirect('/edit_student/'+student_id)
@@ -744,7 +717,7 @@ def admin_get_attendance_student(request):
     list_data = []
 
     for student in attendance_data:
-        data_small={"id":student.student_id.admin.id, "name":student.student_id.admin.first_name+" "+student.student_id.admin.last_name, "status":student.status}
+        data_small={"id":student.student_id.admin.id, "name":student.student_id.admin.name, "status":student.status}
         list_data.append(data_small)
 
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
@@ -789,6 +762,5 @@ def staff_profile(request):
 
 def student_profile(requtest):
     pass
-
 
 
