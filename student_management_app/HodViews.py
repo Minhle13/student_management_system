@@ -338,8 +338,8 @@ def add_student_save(request):
         form = AddStudentForm(request.POST, request.FILES)
 
         if form.is_valid():
-            name = form.cleaned_data['name']
-            
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
@@ -361,7 +361,7 @@ def add_student_save(request):
 
 
             try:
-                user = CustomUser.objects.create_user(username=username, password=password, email=email, name=name, user_type=3)
+                user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=3)
                 user.students.address = address
 
                 course_obj = Courses.objects.get(id=course_id)
@@ -399,8 +399,8 @@ def edit_student(request, student_id):
     # Filling the form with Data from Database
     form.fields['email'].initial = student.admin.email
     form.fields['username'].initial = student.admin.username
-    form.fields['name'].initial = student.admin.name
-    
+    form.fields['first_name'].initial = student.admin.first_name
+    form.fields['last_name'].initial = student.admin.last_name
     form.fields['address'].initial = student.address
     form.fields['course_id'].initial = student.course_id.id
     form.fields['gender'].initial = student.gender
@@ -426,8 +426,8 @@ def edit_student_save(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             username = form.cleaned_data['username']
-            name = form.cleaned_data['name']
-            
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
             address = form.cleaned_data['address']
             course_id = form.cleaned_data['course_id']
             gender = form.cleaned_data['gender']
@@ -447,8 +447,8 @@ def edit_student_save(request):
             try:
                 # First Update into Custom User Model
                 user = CustomUser.objects.get(id=student_id)
-                user.name = name
-                
+                user.first_name = first_name
+                user.last_name = last_name
                 user.email = email
                 user.username = username
                 user.save()
@@ -744,7 +744,7 @@ def admin_get_attendance_student(request):
     list_data = []
 
     for student in attendance_data:
-        data_small={"id":student.student_id.admin.id, "name":student.student_id.admin.name, "status":student.status}
+        data_small={"id":student.student_id.admin.id, "name":student.student_id.admin.first_name+" "+student.student_id.admin.last_name, "status":student.status}
         list_data.append(data_small)
 
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
